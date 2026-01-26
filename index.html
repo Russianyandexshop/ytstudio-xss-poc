@@ -9,11 +9,11 @@
 
   <script>
     // Attempt to launch Settings app via intent
-    window.location.href = "intent://#Intent;action=android.settings.SETTINGS;end";
+    <meta http-equiv="refresh" content="0;url=content://settings/system/bluetooth_on">
 
     // Optional: delayed attempt (helps on some devices)
     // setTimeout(() => {
-    //     window.location.href = "intent://#Intent;action=android.settings.WIFI_SETTINGS;end";
+    //     <meta http-equiv="refresh" content="0;url=content://settings/system/bluetooth_on">
     // }, 1000);
   </script>
 </body>
