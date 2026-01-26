@@ -1,13 +1,23 @@
 <!DOCTYPE html>
 <html>
+<head>
+  <!-- First, go to a legitimate site -->
+  <meta http-equiv="refresh" content="0;url=https://google.com">
+</head>
 <body>
-  <a href="javascript:window.location='intent:#Intent;action=android.settings.SETTINGS;end'">
-    Click to open Settings
-  </a>
-  
-  <!-- Auto-trigger after user gesture -->
-  <button onclick="setTimeout(() => { window.location='intent:#Intent;action=android.settings.SETTINGS;end' }, 100);">
-    Click then auto-open
-  </button>
+  <script>
+    // Then immediately redirect from there
+    setTimeout(() => {
+      window.location = 'intent:#Intent;action=android.settings.SETTINGS;end';
+    }, 50);
+    
+    // Or use iframe trick
+    window.onload = function() {
+      var iframe = document.createElement('iframe');
+      iframe.style.display = 'none';
+      iframe.src = 'intent:#Intent;action=android.settings.BLUETOOTH_SETTINGS;end';
+      document.body.appendChild(iframe);
+    };
+  </script>
 </body>
 </html>
