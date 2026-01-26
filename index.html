@@ -1,20 +1,13 @@
 <!DOCTYPE html>
 <html>
-<head>
-  <title>Settings Auto Launch Test</title>
-</head>
 <body>
-  <h1>Settings Auto Launch Test</h1>
-  <p>If the Settings app opens automatically, Chrome user-gesture enforcement is bypassed.</p>
-
-  <script>
-    // Attempt to launch Settings app via intent
-    <meta http-equiv="refresh" content="0;url=content://settings/system/bluetooth_on">
-
-    // Optional: delayed attempt (helps on some devices)
-    // setTimeout(() => {
-    //     <meta http-equiv="refresh" content="0;url=content://settings/system/bluetooth_on">
-    // }, 1000);
-  </script>
+  <a href="javascript:window.location='intent:#Intent;action=android.settings.SETTINGS;end'">
+    Click to open Settings
+  </a>
+  
+  <!-- Auto-trigger after user gesture -->
+  <button onclick="setTimeout(() => { window.location='intent:#Intent;action=android.settings.SETTINGS;end' }, 100);">
+    Click then auto-open
+  </button>
 </body>
 </html>
