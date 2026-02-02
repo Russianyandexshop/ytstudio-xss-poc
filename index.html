@@ -1,29 +1,341 @@
 <!DOCTYPE html>
 <html>
+<head>
+    <title>File to Text Extractor</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            max-width: 800px;
+        }
+        #output {
+            margin-top: 20px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+            max-height: 500px;
+            overflow-y: auto;
+        }
+        .metadata {
+            background-color: #e8f4f8;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+        }
+        .content-box {
+            background-color: #f5f5f5;
+            padding: 15px;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+            margin-top: 15px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            overflow-x: auto;
+        }
+        .warning {
+            color: #856404;
+            background-color: #fff3cd;
+            border: 1px solid #ffeaa7;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        .error {
+            color: #721c24;
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        input[type="file"] {
+            padding: 10px;
+            font-size: 16px;
+            border: 2px solid #007bff;
+            border-radius: 5px;
+            background-color: white;
+            cursor: pointer;
+        }
+        input[type="file"]:hover {
+            border-color: #0056b3;
+        }
+        .stats {
+            font-size: 12px;
+            color: #666;
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px solid #eee;
+        }
+        .instructions {
+            background-color: #e7f3fe;
+            padding: 10px;
+            border-left: 4px solid #2196F3;
+            margin: 10px 0;
+            border-radius: 0 5px 5px 0;
+        }
+    </style>
+</head>
 <body>
-<h1>FileUtilitiesHost Test</h1>
-<button id="trigger">Select a File</button>
+<h1>File to Text Extractor</h1>
+<p>Select any file to extract and display its text content.</p>
+
+<div class="instructions">
+    <strong>How to use:</strong>
+    <ol>
+        <li>Click "Choose File" button below</li>
+        <li>Select ANY file from your computer</li>
+        <li>The file's text content will be displayed below</li>
+    </ol>
+</div>
+
+<input type="file" id="fileInput" accept="*/*">
+<div id="output" style="display: none;"></div>
 
 <script>
-document.getElementById('trigger').addEventListener('click', async () => {
-    try {
-        // Step 1: Trigger Chrome's file picker (this reaches FileUtilitiesHost internally)
-        const [fileHandle] = await window.showOpenFilePicker();
-        
-        // Step 2: Request metadata (size, type, lastModified)
-        const file = await fileHandle.getFile();
-        
-        console.log("File Name:", file.name);
-        console.log("File Size:", file.size);
-        console.log("Last Modified:", file.lastModified);
-
-        // Step 3: Optional: Check the type
-        console.log("File Type:", file.type);
-        
-    } catch (err) {
-        console.error("Error accessing file:", err);
+document.getElementById('fileInput').addEventListener('change', function(e) {
+    const output = document.getElementById('output');
+    const file = e.target.files[0];
+    
+    if (!file) {
+        output.style.display = 'none';
+        return;
+    }
+    
+    // Clear previous content and show output container
+    output.innerHTML = '';
+    output.style.display = 'block';
+    
+    // Display metadata
+    output.innerHTML += `
+        <div class="metadata">
+            <h3>File Information:</h3>
+            <p><strong>File Name:</strong> ${escapeHtml(file.name)}</p>
+            <p><strong>File Size:</strong> ${formatFileSize(file.size)}</p>
+            <p><strong>File Type:</strong> ${file.type || 'Unknown'}</p>
+            <p><strong>Last Modified:</strong> ${new Date(file.lastModified).toLocaleString()}</p>
+        </div>
+    `;
+    
+    // Set up FileReader
+    const reader = new FileReader();
+    
+    reader.onload = function(e) {
+        try {
+            const MAX_DISPLAY_SIZE = 5 * 1024 * 1024; // 5MB display limit
+            let extractedText = '';
+            
+            // Try different methods to extract text based on file type
+            if (file.type.startsWith('text/') || 
+                file.type === 'application/json' ||
+                file.type === 'application/javascript' ||
+                file.type === 'application/xml') {
+                
+                // For known text files, just use the text content
+                extractedText = e.target.result;
+                
+            } else if (file.type.startsWith('image/')) {
+                // For images - extract metadata and show info
+                extractedText = `[IMAGE FILE]\n`;
+                extractedText += `Image type: ${file.type}\n`;
+                extractedText += `Image size: ${file.size} bytes\n\n`;
+                extractedText += `This is a binary image file.\n`;
+                extractedText += `To extract text from this image, you would need OCR software.\n`;
+                
+            } else if (file.type === 'application/pdf') {
+                // For PDF files
+                extractedText = `[PDF FILE]\n`;
+                extractedText += `PDF size: ${file.size} bytes\n\n`;
+                extractedText += `This is a PDF document.\n`;
+                extractedText += `To extract text from this PDF, use PDF reader software.\n`;
+                
+            } else if (file.type.includes('wordprocessingml') ||
+                      file.type.includes('msword')) {
+                // For Word documents
+                extractedText = `[WORD DOCUMENT]\n`;
+                extractedText += `Document size: ${file.size} bytes\n\n`;
+                extractedText += `This is a Microsoft Word file.\n`;
+                
+            } else if (file.type.includes('spreadsheetml') ||
+                      file.type.includes('msexcel')) {
+                // For Excel files
+                extractedText = `[EXCEL SPREADSHEET]\n`;
+                extractedText += `Spreadsheet size: ${file.size} bytes\n\n`;
+                extractedText += `This is a Microsoft Excel file.\n`;
+                
+            } else if (file.type === 'application/zip' ||
+                      file.type === 'application/x-zip-compressed') {
+                // For ZIP files
+                extractedText = `[ZIP ARCHIVE]\n`;
+                extractedText += `Archive size: ${file.size} bytes\n\n`;
+                extractedText += `This is a compressed ZIP file.\n`;
+                
+            } else {
+                // For other binary files, try to extract ASCII text
+                extractedText = extractTextFromBinary(e.target.result, file.size);
+            }
+            
+            // Display warning for large files
+            if (file.size > MAX_DISPLAY_SIZE) {
+                output.innerHTML += `
+                    <div class="warning">
+                        <strong>Note:</strong> File is large (${formatFileSize(file.size)}). 
+                        Only showing first ${formatFileSize(MAX_DISPLAY_SIZE)} of extracted text.
+                    </div>
+                `;
+            }
+            
+            // Display the extracted text
+            output.innerHTML += `<h3>Extracted Text Content:</h3>`;
+            
+            // Truncate if too large
+            const displayText = extractedText.substring(0, MAX_DISPLAY_SIZE);
+            output.innerHTML += `<div class="content-box">${escapeHtml(displayText)}</div>`;
+            
+            // Show statistics
+            output.innerHTML += `
+                <div class="stats">
+                    <strong>Statistics:</strong><br>
+                    File size: ${formatFileSize(file.size)}<br>
+                    Extracted text size: ${formatFileSize(extractedText.length)}<br>
+                    Characters displayed: ${Math.min(displayText.length, extractedText.length)} of ${extractedText.length}
+                </div>
+            `;
+            
+        } catch (extractError) {
+            output.innerHTML += `
+                <div class="error">
+                    <strong>Error processing file content:</strong> ${escapeHtml(extractError.message)}
+                </div>
+            `;
+        }
+    };
+    
+    reader.onerror = function(e) {
+        output.innerHTML += `
+            <div class="error">
+                <strong>Error reading file:</strong> ${escapeHtml(e.target.error.message || 'Unknown error')}
+            </div>
+        `;
+    };
+    
+    // Read the file based on type
+    const MAX_READ_SIZE = 10 * 1024 * 1024; // Read up to 10MB
+    
+    if (isLikelyTextFile(file)) {
+        // For likely text files, read as text
+        const blob = file.size > MAX_READ_SIZE ? file.slice(0, MAX_READ_SIZE) : file;
+        reader.readAsText(blob);
+    } else {
+        // For binary files, read as ArrayBuffer to attempt text extraction
+        const blob = file.size > MAX_READ_SIZE ? file.slice(0, MAX_READ_SIZE) : file;
+        reader.readAsArrayBuffer(blob);
     }
 });
+
+// Helper function to check if file is likely text-based
+function isLikelyTextFile(file) {
+    const textTypes = [
+        'text/',
+        'application/json',
+        'application/javascript',
+        'application/xml',
+        'application/xhtml+xml'
+    ];
+    
+    // Check MIME type
+    if (file.type) {
+        for (const type of textTypes) {
+            if (file.type.startsWith(type)) return true;
+        }
+    }
+    
+    // Check file extension for common text files
+    const textExtensions = [
+        '.txt', '.csv', '.html', '.htm', '.css', '.js', '.json',
+        '.xml', '.md', '.log', '.yml', '.yaml', '.ini', '.cfg',
+        '.conf', '.php', '.py', '.java', '.c', '.cpp', '.h',
+        '.ts', '.jsx', '.tsx', '.vue', '.svelte', '.sh', '.bat',
+        '.ps1', '.sql', '.csv', '.tsv', '.rtf'
+    ];
+    
+    const fileName = file.name.toLowerCase();
+    for (const ext of textExtensions) {
+        if (fileName.endsWith(ext)) return true;
+    }
+    
+    return false;
+}
+
+// Helper function to extract text from binary data
+function extractTextFromBinary(arrayBuffer, originalSize) {
+    const bytes = new Uint8Array(arrayBuffer);
+    let extractedText = '';
+    
+    extractedText += `[BINARY FILE ANALYSIS]\n`;
+    extractedText += `Original file size: ${originalSize} bytes\n`;
+    extractedText += `Analyzing for printable ASCII characters...\n\n`;
+    
+    // Simple ASCII text extraction
+    let asciiText = '';
+    let printableCount = 0;
+    const maxBytesToAnalyze = Math.min(bytes.length, 100000); // Analyze up to 100KB
+    
+    for (let i = 0; i < maxBytesToAnalyze; i++) {
+        const byte = bytes[i];
+        
+        // Check if byte is printable ASCII (32-126) or common whitespace (9, 10, 13)
+        if ((byte >= 32 && byte <= 126) || byte === 9 || byte === 10 || byte === 13) {
+            asciiText += String.fromCharCode(byte);
+            printableCount++;
+        } else if (asciiText.length > 0 && asciiText[asciiText.length - 1] !== '\n') {
+            // Add newline when transitioning from printable to non-printable
+            asciiText += '\n';
+        }
+    }
+    
+    // Add any found ASCII text
+    if (asciiText.trim().length > 0) {
+        extractedText += `Found ASCII text:\n`;
+        extractedText += `===================\n`;
+        extractedText += asciiText;
+        extractedText += `\n===================\n`;
+    } else {
+        extractedText += `No readable ASCII text found in the analyzed portion.\n`;
+    }
+    
+    // Add statistics
+    extractedText += `\n=== ANALYSIS STATISTICS ===\n`;
+    extractedText += `Bytes analyzed: ${maxBytesToAnalyze}\n`;
+    extractedText += `Printable ASCII characters: ${printableCount}\n`;
+    extractedText += `Binary/non-printable bytes: ${maxBytesToAnalyze - printableCount}\n`;
+    
+    if (maxBytesToAnalyze < originalSize) {
+        extractedText += `\nNote: Only analyzed first ${formatFileSize(maxBytesToAnalyze)} of ${formatFileSize(originalSize)}\n`;
+    }
+    
+    return extractedText;
+}
+
+// Helper function to format file size
+function formatFileSize(bytes) {
+    if (bytes === 0) return '0 Bytes';
+    
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+}
+
+// Helper function to escape HTML
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
 </script>
 </body>
 </html>
